@@ -21,6 +21,7 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
+    /*
     signingConfigs {
         create("release") {
             val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -34,6 +35,7 @@ android {
             }
         }
     }
+    */
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
