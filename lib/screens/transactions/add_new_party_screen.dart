@@ -82,7 +82,7 @@ class _AddNewPartyScreenState extends State<AddNewPartyScreen> {
     super.dispose();
   }
 
-  Future<void> _saveParty() async {
+  Future<void> _saveParty({bool saveAndNew = false}) async {
     if (_formKey.currentState!.validate()) {
       try {
         final partyData = {
@@ -93,7 +93,7 @@ class _AddNewPartyScreenState extends State<AddNewPartyScreen> {
           'billingAddress': _billingAddressController.text,
           'shippingAddress': _shippingAddressController.text,
           'type': _partyType,
-          'state': _selectedState, // Use the selected state from dropdown
+          'state': _selectedState,
         };
 
         if (widget.party == null) {
@@ -102,14 +102,29 @@ class _AddNewPartyScreenState extends State<AddNewPartyScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Party created successfully!')),
           );
+          if (saveAndNew) {
+            _formKey.currentState!.reset();
+            _nameController.clear();
+            _gstinController.clear();
+            _phoneController.clear();
+            _emailController.clear();
+            _billingAddressController.clear();
+            _shippingAddressController.clear();
+            setState(() {
+              _selectedState = null;
+              _partyType = 'Customer';
+            });
+          } else {
+            Navigator.of(context).pop(true);
+          }
         } else {
           // Updating an existing party
           // await _apiService.updateParty(widget.party!.id, partyData);
           // ScaffoldMessenger.of(context).showSnackBar(
           //   const SnackBar(content: Text('Party updated successfully!')),
           // );
+          Navigator.of(context).pop(true); // Return true to indicate success
         }
-        Navigator.of(context).pop(true); // Return true to indicate success
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to save party: $e')),
@@ -124,9 +139,14 @@ class _AddNewPartyScreenState extends State<AddNewPartyScreen> {
       appBar: AppBar(
         title: Text(widget.party == null ? 'Add New Party' : 'Edit Party'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveParty,
+          if (widget.party == null)
+            TextButton(
+              onPressed: () => _saveParty(saveAndNew: true),
+              child: const Text('Save & New'),
+            ),
+          TextButton(
+            onPressed: () => _saveParty(),
+            child: const Text('Save'),
           ),
         ],
       ),

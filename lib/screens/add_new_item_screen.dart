@@ -41,7 +41,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
     super.dispose();
   }
 
-  void _saveItem() async {
+  void _saveItem({bool saveAndNew = false}) async {
     if (_formKey.currentState!.validate()) {
       final newItem = {
         'name': _nameController.text,
@@ -52,7 +52,19 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
       };
       try {
         await _apiService.createItem(newItem);
-        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Item saved successfully')),
+        );
+        if (saveAndNew) {
+          _formKey.currentState!.reset();
+          _nameController.clear();
+          _salePriceController.clear();
+          _purchasePriceController.clear();
+          _stockController.clear();
+          _nameFocusNode.requestFocus();
+        } else {
+          Navigator.pop(context, true);
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to save item: $e')),
@@ -141,14 +153,30 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
-          onPressed: _saveItem,
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            backgroundColor: Colors.red.shade600,
-            foregroundColor: Colors.white,
-          ),
-          child: const Text('Save Item'),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _saveItem(),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text('Save'),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _saveItem(saveAndNew: true),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.red.shade600,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Save and New'),
+              ),
+            ),
+          ],
         ),
       ),
     );

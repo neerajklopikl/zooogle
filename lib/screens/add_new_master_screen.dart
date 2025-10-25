@@ -68,7 +68,7 @@ class _AddNewMasterScreenState extends State<AddNewMasterScreen> {
     super.dispose();
   }
 
-  void _onSave() {
+  void _onSave({bool saveAndNew = false}) {
     if (_formKey.currentState!.validate()) {
       // Collect all data into a map
       final result = {
@@ -99,7 +99,33 @@ class _AddNewMasterScreenState extends State<AddNewMasterScreen> {
         'enableSmsQuery': _enableSmsQuery,
         // Add all other fields here...
       };
-      Navigator.of(context).pop(result);
+
+      // In a real app, you would send this to an API
+      print(result);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Master saved successfully')),
+      );
+
+      if (saveAndNew) {
+        _formKey.currentState!.reset();
+        _controllers.forEach((key, controller) {
+          if (key != 'opBal' && key != 'prevYearBal' && key != 'distance') {
+            controller.clear();
+          }
+        });
+        setState(() {
+          _selectedGroup = null;
+          _selectedCountry = null;
+          _selectedState = null;
+          _opBalType = 'Dr';
+          _prevYearBalType = 'Dr';
+          _enableEmailQuery = false;
+          _enableSmsQuery = false;
+        });
+      } else {
+        Navigator.of(context).pop(result);
+      }
     }
   }
 
@@ -110,7 +136,8 @@ class _AddNewMasterScreenState extends State<AddNewMasterScreen> {
         title: const Text('Add Account Master'),
         backgroundColor: Colors.grey.shade100,
         actions: [
-          TextButton(onPressed: _onSave, child: const Text('Save')),
+          TextButton(onPressed: () => _onSave(saveAndNew: true), child: const Text('Save & New')),
+          TextButton(onPressed: () => _onSave(), child: const Text('Save')),
           TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Quit')),
         ],
       ),
@@ -164,15 +191,15 @@ class _AddNewMasterScreenState extends State<AddNewMasterScreen> {
           _buildTextField('name', 'Name *', isRequired: true),
           _buildTextField('alias', 'Alias'),
           _buildTextField('printName', 'Print Name'),
-          _buildDropdown('group', 'Group *', _accountGroups, (val) => setState(() => _selectedGroup = val)),
+          _buildDropdown('group', 'Group *', _accountGroups, (val) => setState(() => _selectedGroup = val), _selectedGroup),
           _buildBalanceField('opBal', 'Op. Bal.', _opBalType, (val) => setState(() => _opBalType = val)),
           _buildBalanceField('prevYearBal', 'Prev. Year Bal.', _prevYearBalType, (val) => setState(() => _prevYearBalType = val)),
           _buildTextField('address1', 'Address 1'),
           _buildTextField('address2', 'Address 2'),
           _buildTextField('address3', 'Address 3'),
           _buildTextField('address4', 'Address 4'),
-          _buildDropdown('country', 'Country', _countries, (val) => setState(() => _selectedCountry = val)),
-          _buildDropdown('state', 'State', _states, (val) => setState(() => _selectedState = val)),
+          _buildDropdown('country', 'Country', _countries, (val) => setState(() => _selectedCountry = val), _selectedCountry),
+          _buildDropdown('state', 'State', _states, (val) => setState(() => _selectedState = val), _selectedState),
           _buildTextField('gstin', 'GSTIN / UIN', button: TextButton(onPressed: () {}, child: const Text('Validate Online'))),
           _buildTextField('aadhaarNo', 'Aadhaar No.'),
           _buildTextField('itPan', 'IT PAN'),
@@ -247,10 +274,11 @@ class _AddNewMasterScreenState extends State<AddNewMasterScreen> {
     );
   }
 
-  Widget _buildDropdown(String key, String label, List<String> items, Function(String?) onChanged) {
+  Widget _buildDropdown(String key, String label, List<String> items, Function(String?) onChanged, String? value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: DropdownButtonFormField<String>(
+        value: value,
         decoration: InputDecoration(labelText: label),
         items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
         onChanged: onChanged,

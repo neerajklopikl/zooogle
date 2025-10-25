@@ -113,22 +113,25 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
   }
 
   Future<void> _addItem() async {
-    final result = await Navigator.push<InvoiceLineItem>(
+    await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AddItemScreen()),
+      MaterialPageRoute(
+        builder: (context) => AddItemScreen(
+          onSave: (item) {
+            if (_lineItems.isEmpty) {
+              _subTotalController.text = '0.00';
+            }
+            setState(() {
+              _lineItems.add(item);
+              _calculateAmounts();
+            });
+          },
+        ),
+      ),
     );
-    if (result != null) {
-      if (_lineItems.isEmpty) {
-        _subTotalController.text = '0.00';
-      }
-      setState(() {
-        _lineItems.add(result);
-        _calculateAmounts(); 
-      });
-    }
   }
 
-  Future<void> _saveTransaction() async {
+  Future<void> _saveTransaction({bool saveAndNew = false}) async {
     if (_formKey.currentState!.validate()) {
       final transactionData = {
         'type': widget.type.toJson(),
@@ -147,7 +150,30 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
 
       try {
         await _apiService.createTransaction(transactionData);
-        Navigator.pop(context, true); // Go back on success
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Transaction saved successfully')),
+        );
+        if (saveAndNew) {
+          _formKey.currentState!.reset();
+          _partyNameController.clear();
+          _phoneController.clear();
+          _subTotalController.text = '0.00';
+          _discountController.text = '0.00';
+          _amountPaidController.text = '0.00';
+          _poNumberController.clear();
+          _originalNumberController.clear();
+          setState(() {
+            _lineItems.clear();
+            _invoiceDate = DateTime.now();
+            _invoiceTime = DateTime.now();
+            _poDate = DateTime.now();
+            _originalDate = DateTime.now();
+            _paymentType = PaymentType.cash;
+            _numberController.text = (int.parse(_numberController.text) + 1).toString();
+          });
+        } else {
+          Navigator.pop(context, true); // Go back on success
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to save transaction: $e')),
@@ -500,7 +526,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: _saveTransaction,
+              onPressed: () => _saveTransaction(saveAndNew: true),
               style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               child: const Text('Save & New'),
             ),
@@ -508,7 +534,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: _saveTransaction,
+              onPressed: () => _saveTransaction(),
               style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

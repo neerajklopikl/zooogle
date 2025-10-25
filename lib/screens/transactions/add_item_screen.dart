@@ -33,17 +33,20 @@ class InvoiceLineItem {
 
 
 class AddItemScreen extends StatefulWidget {
-  const AddItemScreen({super.key});
+  final Function(InvoiceLineItem) onSave;
+  const AddItemScreen({super.key, required this.onSave});
 
   @override
   State<AddItemScreen> createState() => _AddItemScreenState();
 }
 
 class _AddItemScreenState extends State<AddItemScreen> {
+  final _formKey = GlobalKey<FormState>();
   // Add controllers to get the text
   final _nameController = TextEditingController();
   final _qtyController = TextEditingController(text: '1'); // Default qty to 1
   final _rateController = TextEditingController();
+  final _nameFocusNode = FocusNode();
 
   String _selectedUnit = 'Nos';
   String _taxType = 'Without Tax';
@@ -63,18 +66,33 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   // --- NEW SAVE FUNCTION ---
-  void _saveItem() {
-    // 1. Create the item object from controller values
-    final newItem = InvoiceLineItem(
-      name: _nameController.text.isNotEmpty ? _nameController.text : 'Item',
-      quantity: double.tryParse(_qtyController.text) ?? 1.0,
-      rate: double.tryParse(_rateController.text) ?? 0.0,
-      unit: _selectedUnit,
-      taxType: _taxType,
-    );
+  void _saveItem({bool saveAndNew = false}) {
+    if (_formKey.currentState!.validate()) {
+      // 1. Create the item object from controller values
+      final newItem = InvoiceLineItem(
+        name: _nameController.text.isNotEmpty ? _nameController.text : 'Item',
+        quantity: double.tryParse(_qtyController.text) ?? 1.0,
+        rate: double.tryParse(_rateController.text) ?? 0.0,
+        unit: _selectedUnit,
+        taxType: _taxType,
+      );
 
-    // 2. Pop the screen and RETURN the new item
-    Navigator.pop(context, newItem);
+      widget.onSave(newItem);
+
+      if (saveAndNew) {
+        _formKey.currentState!.reset();
+        _nameController.clear();
+        _qtyController.text = '1';
+        _rateController.clear();
+        setState(() {
+          _selectedUnit = 'Nos';
+          _taxType = 'Without Tax';
+        });
+        _nameFocusNode.requestFocus();
+      } else {
+        Navigator.pop(context);
+      }
+    }
   }
   // --- END NEW SAVE FUNCTION ---
 
@@ -83,6 +101,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     _nameController.dispose();
     _qtyController.dispose();
     _rateController.dispose();
+    _nameFocusNode.dispose();
     super.dispose();
   }
 
@@ -94,88 +113,98 @@ class _AddItemScreenState extends State<AddItemScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextFormField(
-              controller: _nameController, // Assign controller
-              decoration: const InputDecoration(
-                labelText: 'Item Name',
-                hintText: 'e.g. Chocolate Cake',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _qtyController, // Assign controller
-                    decoration: const InputDecoration(
-                      labelText: 'Quantity',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _nameController, // Assign controller
+                focusNode: _nameFocusNode,
+                decoration: const InputDecoration(
+                  labelText: 'Item Name',
+                  hintText: 'e.g. Chocolate Cake',
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: InkWell(
-                    onTap: _showUnitSelectionDialog,
-                    child: InputDecorator(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an item name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _qtyController, // Assign controller
                       decoration: const InputDecoration(
-                        labelText: 'Unit',
+                        labelText: 'Quantity',
                         border: OutlineInputBorder(),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(_selectedUnit),
-                          const Icon(Icons.arrow_drop_down),
-                        ],
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: _showUnitSelectionDialog,
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Unit',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(_selectedUnit),
+                            const Icon(Icons.arrow_drop_down),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _rateController, // Assign controller
-                    decoration: const InputDecoration(
-                      labelText: 'Rate (Price/Unit)',
-                      border: OutlineInputBorder(),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _rateController, // Assign controller
+                      decoration: const InputDecoration(
+                        labelText: 'Rate (Price/Unit)',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
                     ),
-                    keyboardType: TextInputType.number,
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _taxType,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _taxType,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      items: ['With Tax', 'Without Tax']
+                          .map((label) => DropdownMenuItem(
+                                value: label,
+                                child: Text(label),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _taxType = value;
+                          });
+                        }
+                      },
                     ),
-                    items: ['With Tax', 'Without Tax']
-                        .map((label) => DropdownMenuItem(
-                              value: label,
-                              child: Text(label),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _taxType = value;
-                        });
-                      }
-                    },
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Padding(
@@ -184,11 +213,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () {
-                  // This button is not fully implemented in the video
-                  // For now, it will just save
-                  _saveItem(); 
-                },
+                onPressed: () => _saveItem(saveAndNew: true),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -198,7 +223,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                onPressed: _saveItem, // --- CALL THE NEW SAVE FUNCTION ---
+                onPressed: () => _saveItem(), // --- CALL THE NEW SAVE FUNCTION ---
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: Colors.red.shade600,

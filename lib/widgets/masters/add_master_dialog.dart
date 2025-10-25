@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 class AddMasterDialog extends StatefulWidget {
   final String masterType;
-  const AddMasterDialog({super.key, required this.masterType});
+  final Function(Map<String, String>) onSave;
+  const AddMasterDialog({super.key, required this.masterType, required this.onSave});
 
   @override
   State<AddMasterDialog> createState() => _AddMasterDialogState();
@@ -22,13 +23,21 @@ class _AddMasterDialogState extends State<AddMasterDialog> {
     super.dispose();
   }
 
-  void _onSave() {
+  void _onSave({bool saveAndNew = false}) {
     if (_formKey.currentState!.validate()) {
       final result = {
         'name': _nameController.text,
         'prefix': _prefixController.text,
       };
-      Navigator.of(context).pop(result);
+      widget.onSave(result);
+
+      if (saveAndNew) {
+        _formKey.currentState!.reset();
+        _nameController.clear();
+        _prefixController.clear();
+      } else {
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -62,6 +71,10 @@ class _AddMasterDialogState extends State<AddMasterDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
+        OutlinedButton(
+          onPressed: () => _onSave(saveAndNew: true),
+          child: const Text('Save & New'),
+        ),
         ElevatedButton(
           onPressed: _onSave,
           child: const Text('Save'),
@@ -70,4 +83,3 @@ class _AddMasterDialogState extends State<AddMasterDialog> {
     );
   }
 }
-

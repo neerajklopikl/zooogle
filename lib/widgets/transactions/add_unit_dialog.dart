@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AddUnitDialog extends StatefulWidget {
-  const AddUnitDialog({super.key});
+  final Function(Map<String, String>) onSave;
+  const AddUnitDialog({super.key, required this.onSave});
 
   @override
   State<AddUnitDialog> createState() => _AddUnitDialogState();
@@ -19,13 +20,20 @@ class _AddUnitDialogState extends State<AddUnitDialog> {
     super.dispose();
   }
 
-  void _saveUnit() {
+  void _saveUnit({bool saveAndNew = false}) {
     if (_formKey.currentState!.validate()) {
       final newUnit = {
         'name': _unitNameController.text,
         'short': _shortNameController.text,
       };
-      Navigator.of(context).pop(newUnit);
+      widget.onSave(newUnit);
+      if (saveAndNew) {
+        _formKey.currentState!.reset();
+        _unitNameController.clear();
+        _shortNameController.clear();
+      } else {
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -47,6 +55,7 @@ class _AddUnitDialogState extends State<AddUnitDialog> {
                 }
                 return null;
               },
+              autofocus: true,
             ),
             const SizedBox(height: 4),
             const Text('This unit cannot be deleted.', style: TextStyle(color: Colors.grey, fontSize: 12)),
@@ -69,8 +78,12 @@ class _AddUnitDialogState extends State<AddUnitDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
+        OutlinedButton(
+            onPressed: () => _saveUnit(saveAndNew: true),
+            child: const Text('Save & New'),
+        ),
         ElevatedButton(
-          onPressed: _saveUnit,
+          onPressed: () => _saveUnit(),
           child: const Text('Save'),
         ),
       ],
