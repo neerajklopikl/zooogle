@@ -202,6 +202,15 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     _amountPaidController.text = '0.00';
     _poNumberController.clear();
     _originalNumberController.clear();
+    
+    // 
+    // ***** THIS IS THE FIX *****
+    //
+    _numberController.clear(); // <-- THIS LINE WAS MISSING
+    //
+    // **************************
+    //
+
     setState(() {
       _lineItems.clear();
       _invoiceDate = DateTime.now();
