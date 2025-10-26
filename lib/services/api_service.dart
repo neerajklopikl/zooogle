@@ -11,6 +11,18 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ApiService {
   final String _baseUrl = dotenv.env['BASE_URL'] ?? '';
 
+  // --- NEW FUNCTION ---
+  Future<String> getNextTransactionNumber(String type) async {
+    final response = await http.get(Uri.parse('$_baseUrl/transactions/next-number/$type'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['nextNumber'];
+    } else {
+      throw Exception('Failed to get next transaction number');
+    }
+  }
+  // --- END NEW FUNCTION ---
+
   Future<List<Map<String, String>>> fetchIndianStates() async {
     final response = await http.get(Uri.parse('$_baseUrl/data/states'));
     if (response.statusCode == 200) {

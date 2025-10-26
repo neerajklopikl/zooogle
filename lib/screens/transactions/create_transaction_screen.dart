@@ -19,6 +19,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final ApiService _apiService = ApiService();
   late TransactionConfig _config;
+  bool _isLoadingNumber = true; // --- NEW: Loading state for number
 
   // Common Controllers
   final _numberController = TextEditingController();
@@ -54,13 +55,37 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
   void initState() {
     super.initState();
     _config = TransactionConfig.fromType(widget.type);
-    _numberController.text = "1"; // Default transaction number
+    _fetchNextTransactionNumber(); // --- NEW: Fetch number on init
 
     // Add listeners to auto-calculate
     _subTotalController.addListener(_calculateAmounts);
     _discountController.addListener(_calculateAmounts);
     _amountPaidController.addListener(_calculateAmounts);
   }
+
+  // --- NEW: Function to fetch the number from the API ---
+  Future<void> _fetchNextTransactionNumber() async {
+    setState(() {
+      _isLoadingNumber = true;
+    });
+    try {
+      final nextNumber = await _apiService.getNextTransactionNumber(widget.type.toJson());
+      setState(() {
+        _numberController.text = nextNumber;
+        _isLoadingNumber = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingNumber = false;
+        // Show an error or set a default
+        _numberController.text = "Error"; 
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Could not fetch next transaction number: $e")),
+        );
+      });
+    }
+  }
+
 
   @override
   void dispose() {
@@ -131,6 +156,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     );
   }
 
+  // --- MODIFIED: Save logic to reset and fetch new number ---
   Future<void> _saveTransaction({bool saveAndNew = false}) async {
     if (_formKey.currentState!.validate()) {
       final transactionData = {
@@ -154,23 +180,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
           const SnackBar(content: Text('Transaction saved successfully')),
         );
         if (saveAndNew) {
-          _formKey.currentState!.reset();
-          _partyNameController.clear();
-          _phoneController.clear();
-          _subTotalController.text = '0.00';
-          _discountController.text = '0.00';
-          _amountPaidController.text = '0.00';
-          _poNumberController.clear();
-          _originalNumberController.clear();
-          setState(() {
-            _lineItems.clear();
-            _invoiceDate = DateTime.now();
-            _invoiceTime = DateTime.now();
-            _poDate = DateTime.now();
-            _originalDate = DateTime.now();
-            _paymentType = PaymentType.cash;
-            _numberController.text = (int.parse(_numberController.text) + 1).toString();
-          });
+          _resetFormForNewTransaction();
         } else {
           Navigator.pop(context, true); // Go back on success
         }
@@ -181,6 +191,29 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       }
     }
   }
+
+  // --- NEW: Helper to reset the form ---
+  void _resetFormForNewTransaction() {
+    _formKey.currentState!.reset();
+    _partyNameController.clear();
+    _phoneController.clear();
+    _subTotalController.text = '0.00';
+    _discountController.text = '0.00';
+    _amountPaidController.text = '0.00';
+    _poNumberController.clear();
+    _originalNumberController.clear();
+    setState(() {
+      _lineItems.clear();
+      _invoiceDate = DateTime.now();
+      _invoiceTime = DateTime.now();
+      _poDate = DateTime.now();
+      _originalDate = DateTime.now();
+      _paymentType = PaymentType.cash;
+    });
+    // Fetch the next number from the server instead of incrementing locally
+    _fetchNextTransactionNumber(); 
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -288,12 +321,15 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       children: [
         Expanded(
           flex: 2,
-          child: TextFormField(
-            controller: _numberController,
-            decoration: InputDecoration(labelText: _config.numberLabel, border: InputBorder.none),
-            keyboardType: TextInputType.number,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          // --- MODIFIED: Show a loading indicator ---
+          child: _isLoadingNumber 
+              ? const Center(child: CircularProgressIndicator(strokeWidth: 2.0))
+              : TextFormField(
+                  controller: _numberController,
+                  decoration: InputDecoration(labelText: _config.numberLabel, border: InputBorder.none),
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
         ),
         const SizedBox(width: 12),
         Expanded(
