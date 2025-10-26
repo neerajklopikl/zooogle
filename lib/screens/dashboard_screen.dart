@@ -5,10 +5,11 @@ import '../widgets/dashboard/transaction_details_content.dart';
 import '../widgets/dashboard/party_details_content.dart';
 import '../widgets/dashboard/document_section.dart';
 
-
 class DashboardScreen extends StatefulWidget {
-  final Function(int) onToggleChanged; // Callback to notify HomePage
-  const DashboardScreen({super.key, required this.onToggleChanged});
+  // Made the callback optional
+  final Function(int)? onToggleChanged; 
+
+  const DashboardScreen({super.key, this.onToggleChanged});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -34,7 +35,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 setState(() {
                   _selectedToggleIndex = index;
                 });
-                widget.onToggleChanged(index); // Notify the parent (HomePage)
+                // Only call the callback if it was provided
+                widget.onToggleChanged?.call(index); 
               },
             ),
             const SizedBox(height: 16),
