@@ -137,7 +137,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
         'type': widget.type.toJson(),
         'partyName': _partyNameController.text,
         'phoneNumber': _phoneController.text,
-        'invoiceNumber': _numberController.text,
+        'transactionNumber': _numberController.text,
         'invoiceDate': _invoiceDate.toIso8601String(),
         'items': _lineItems.map((item) => item.toJson()).toList(),
         'subTotal': double.tryParse(_subTotalController.text) ?? 0.0,
