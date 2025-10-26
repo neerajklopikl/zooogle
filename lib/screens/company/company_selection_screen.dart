@@ -34,7 +34,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
       context,
       MaterialPageRoute(builder: (context) => const CreateCompanyScreen()),
     );
-    
+
     if (newCompany != null) {
       _selectAndNavigate(newCompany);
     }
@@ -46,7 +46,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
     // --- UPDATED: Navigate to HomePage instead of DashboardScreen ---
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const HomePage()),
-      (Route<dynamic> route) => false,
+          (Route<dynamic> route) => false,
     );
   }
 
@@ -82,6 +82,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
               return ListTile(
                 title: Text(company.name),
                 subtitle: Text(company.company_code),
+                // --- THIS IS THE CORRECTED LINE ---
                 onTap: () => _selectAndNavigate(company),
               );
             },
