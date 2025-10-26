@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
           filled: true,
           fillColor: Colors.white,
         ),
-        cardTheme: const CardTheme(
+        cardTheme: const CardThemeData(
           elevation: 1,
           color: Colors.white,
         ),
