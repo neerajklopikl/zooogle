@@ -7,11 +7,34 @@ import '../models/party.dart';
 import '../models/master.dart';
 import '../models/gstr_reconciliation_model.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../models/company.dart';
 
 class ApiService {
   final String _baseUrl = dotenv.env['BASE_URL'] ?? '';
 
-  // --- NEW FUNCTION ---
+  Future<Company> createCompany(Map<String, dynamic> companyData) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/companies'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(companyData),
+    );
+    if (response.statusCode == 201) {
+      return Company.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to create company. Status: ${response.statusCode}, Body: ${response.body}');
+    }
+  }
+
+  Future<List<Company>> getUserCompanies() async {
+    final response = await http.get(Uri.parse('$_baseUrl/companies'));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((item) => Company.fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load companies');
+    }
+  }
+
   Future<String> getNextTransactionNumber(String type) async {
     final response = await http.get(Uri.parse('$_baseUrl/transactions/next-number/$type'));
     if (response.statusCode == 200) {
@@ -21,7 +44,6 @@ class ApiService {
       throw Exception('Failed to get next transaction number');
     }
   }
-  // --- END NEW FUNCTION ---
 
   Future<List<Map<String, String>>> fetchIndianStates() async {
     final response = await http.get(Uri.parse('$_baseUrl/data/states'));

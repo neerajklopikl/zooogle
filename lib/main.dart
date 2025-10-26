@@ -1,22 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:zooogle/providers/theme_provider.dart';
-import 'app.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'screens/company/company_selection_screen.dart';
 
-// The main entry point of the application.
 Future<void> main() async {
-  // Load the environment variables from the .env file.
-  // The file to load is determined by the APP_ENV environment variable.
-  // To run in production, use: flutter run --dart-define=APP_ENV=prod
-  await dotenv.load(fileName: ".env.${const String.fromEnvironment('APP_ENV', defaultValue: 'dev')}");
-  
-  runApp(
-    // We wrap the entire app in a ChangeNotifierProvider.
-    // This "provides" the ThemeProvider to all widgets in the app.
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: const MyApp(),
-    ),
-  );
+  await dotenv.load(fileName: ".env.dev");
+
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Zooogle',
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        scaffoldBackgroundColor: const Color(0xFFF7F7F7),
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        cardTheme: const CardTheme(
+          elevation: 1,
+          color: Colors.white,
+        ),
+      ),
+      home: const CompanySelectionScreen(),
+    );
+  }
 }
