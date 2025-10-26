@@ -7,6 +7,7 @@ class UnitSelectionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Sample list of units from the video
+    // In a real app, this should be a stateful widget managing this list.
     final List<Map<String, String>> units = [
       {'name': 'BAGS', 'short': 'Bag'},
       {'name': 'BOTTLES', 'short': 'Btl'},
@@ -22,17 +23,21 @@ class UnitSelectionDialog extends StatelessWidget {
       {'name': 'NUMBERS', 'short': 'Nos'},
     ];
 
-    void _showAddUnitDialog() async {
-      final result = await showDialog<Map<String, String>>(
+    void _showAddUnitDialog() {
+      showDialog<void>(
         context: context,
-        builder: (context) => const AddUnitDialog(),
+        builder: (dialogContext) => AddUnitDialog(
+          onSave: (newUnit) {
+            // In a real app, you'd likely call an API to save this
+            // and then update the state of a StatefulWidget to show the new unit.
+            // For now, we just show a confirmation.
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Unit "${newUnit['name']}" added!')),
+            );
+            // The list isn't updated here because this is a StatelessWidget.
+          },
+        ),
       );
-      if (result != null) {
-        // Here you would typically save the new unit and update the state
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unit "${result['name']}" added!')),
-        );
-      }
     }
 
     return DraggableScrollableSheet(
@@ -72,10 +77,7 @@ class UnitSelectionDialog extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.add_circle_outline, color: Colors.blue),
                 title: const Text('Add New Unit', style: TextStyle(color: Colors.blue)),
-                onTap: () {
-                  Navigator.pop(context); // Close this sheet first
-                  _showAddUnitDialog();
-                },
+                onTap: _showAddUnitDialog, // Corrected onTap
               ),
               const Divider(),
               // --- Unit List ---
