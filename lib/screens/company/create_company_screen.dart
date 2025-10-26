@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../models/company.dart';
 
 class CreateCompanyScreen extends StatefulWidget {
   const CreateCompanyScreen({Key? key}) : super(key: key);
@@ -31,11 +32,16 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
       };
 
       try {
-        await _apiService.createCompany(companyData);
+        // The API service now returns the created company
+        final newCompany = await _apiService.createCompany(companyData);
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Company created successfully!')),
         );
-        Navigator.pop(context, true);
+        
+        // Pop the screen and pass the new company back to the previous screen
+        Navigator.pop(context, newCompany);
+
       } catch (e) {
         setState(() {
           _isSaving = false;

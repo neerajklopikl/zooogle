@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.2
-  provider: ^6.0.5
+  provider: ^6.1.5+1
   dropdown_search: ^5.0.6
   intl: ^0.18.1
   http: ^1.1.0 # Make sure you have the http package

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../models/company.dart';
+import '../../providers/company_provider.dart';
+import '../dashboard_screen.dart';
 import 'create_company_screen.dart';
 
 class CompanySelectionScreen extends StatefulWidget {
@@ -27,13 +30,25 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
   }
 
   void _navigateToCreateCompany() async {
-    final bool? companyCreated = await Navigator.push(
+    final newCompany = await Navigator.push<Company>(
       context,
       MaterialPageRoute(builder: (context) => const CreateCompanyScreen()),
     );
-    if (companyCreated == true) {
-      _loadCompanies();
+    
+    if (newCompany != null) {
+      _selectAndNavigate(newCompany);
     }
+  }
+
+  void _selectAndNavigate(Company company) {
+    // Set the selected company in the provider
+    Provider.of<CompanyProvider>(context, listen: false).selectCompany(company);
+
+    // Navigate to the dashboard, removing all previous routes
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
@@ -68,9 +83,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
               return ListTile(
                 title: Text(company.name),
                 subtitle: Text(company.company_code),
-                onTap: () {
-                  print('Selected company: ${company.name} (${company.company_code})');
-                },
+                onTap: () => _selectAndNavigate(company), // <-- UPDATED
               );
             },
           );
