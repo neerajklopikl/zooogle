@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zooogle/models/transaction_type.dart';
 import 'package:zooogle/providers/theme_provider.dart';
+import 'package:zooogle/providers/company_provider.dart'; // <-- NEW: Import CompanyProvider
 import 'package:zooogle/screens/transactions/create_transaction_screen.dart';
 
 class DesktopHeader extends StatelessWidget {
@@ -9,10 +10,12 @@ class DesktopHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // VVV THIS IS THE CORRECTED WIDGET VVV
-    // Access the theme provider to toggle dark/light mode
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+    
+    // --- NEW: Listen to the CompanyProvider ---
+    final companyProvider = Provider.of<CompanyProvider>(context);
+    final selectedCompany = companyProvider.selectedCompany;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0, left: 8.0, right: 8.0),
@@ -22,14 +25,23 @@ class DesktopHeader extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('My Company', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              // --- UPDATED: Display dynamic company name ---
+              Text(
+                selectedCompany?.name ?? 'My Company', // Fallback text
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)
+              ),
               const SizedBox(height: 4),
-              Text('Unregistered', style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+              // --- UPDATED: Display dynamic registration status ---
+              Text(
+                selectedCompany?.gstin != null && selectedCompany!.gstin!.isNotEmpty 
+                    ? 'Registered' 
+                    : 'Unregistered',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 14)
+              ),
             ],
           ),
           Row(
             children: [
-              // --- Dark Mode Toggle Button ---
               IconButton(
                 icon: Icon(
                   isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
@@ -41,13 +53,12 @@ class DesktopHeader extends StatelessWidget {
                 },
               ),
               const SizedBox(width: 16),
-              // --- Create Invoice Button ---
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const CreateTransactionScreen(type: TransactionType.sale), // Corrected
+                      builder: (context) => const CreateTransactionScreen(type: TransactionType.sale),
                     ),
                   );
                 },
