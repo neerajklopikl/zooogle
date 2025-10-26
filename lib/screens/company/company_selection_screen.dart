@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../models/company.dart';
 import '../../providers/company_provider.dart';
-import '../dashboard_screen.dart';
+import '../home_page.dart'; // <-- NEW: Import HomePage
 import 'create_company_screen.dart';
 
 class CompanySelectionScreen extends StatefulWidget {
@@ -41,12 +41,11 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
   }
 
   void _selectAndNavigate(Company company) {
-    // Set the selected company in the provider
     Provider.of<CompanyProvider>(context, listen: false).selectCompany(company);
 
-    // Navigate to the dashboard, removing all previous routes
+    // --- UPDATED: Navigate to HomePage instead of DashboardScreen ---
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      MaterialPageRoute(builder: (context) => const HomePage()),
       (Route<dynamic> route) => false,
     );
   }
@@ -83,7 +82,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
               return ListTile(
                 title: Text(company.name),
                 subtitle: Text(company.company_code),
-                onTap: () => _selectAndNavigate(company), // <-- UPDATED
+                onTap: () => _selectAndNavigate(company),
               );
             },
           );

@@ -76,7 +76,6 @@ class DocumentsGrid extends StatelessWidget {
     }
 
     if (destination != null) {
-      // VVV THIS IS THE CORRECTED LINE VVV
       Navigator.push(context, MaterialPageRoute(builder: (context) => destination!));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -131,8 +130,6 @@ class DocumentsGrid extends StatelessWidget {
   }
 }
 
-// --- The rest of the file remains unchanged ---
-
 class MoreGrid extends StatelessWidget {
   final BoxConstraints constraints;
   const MoreGrid({super.key, required this.constraints});
@@ -165,6 +162,40 @@ class GridItem extends StatelessWidget {
   const GridItem({super.key, required this.icon, required this.label, required this.color, this.isNew = false, this.onTap});
   @override
   Widget build(BuildContext context) {
-    return InkWell(onTap: onTap, borderRadius: BorderRadius.circular(8.0), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Stack(clipBehavior: Clip.none, children: [CircleAvatar(radius: 24, backgroundColor: color.withOpacity(0.1), child: Icon(icon, color: color, size: 22)), if (isNew) Positioned(top: -4, right: -4, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(8)), child: const Text('New', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))))]), const SizedBox(height: 6), Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis)]));
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(8.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: color.withOpacity(0.1),
+                  child: Icon(icon, color: color, size: 22)
+                ),
+                if (isNew)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(8)),
+                      child: const Text('New', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))
+                    )
+                  )
+              ]
+            ),
+            const SizedBox(height: 6),
+            Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis)
+          ]
+        )
+      )
+    );
   }
 }
